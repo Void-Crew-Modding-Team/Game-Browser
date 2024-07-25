@@ -1,12 +1,17 @@
 ﻿using CG.GameLoopStateMachine;
 using CG.GameLoopStateMachine.GameStates;
 using CG.Input;
+using System.Collections;
+using System.Collections.Generic;
+using UI.Matchmaking;
 using UnityEngine;
+using VoidManager.Utilities;
 
 namespace Game_Browser
 {
-    internal class GameBrowserUI : MonoBehaviour
+    internal class GameBrowserUI : MatchmakingHandler
     {
+        #region Matchmaking Menu
         private void OnGUI()
         {
             if (GameStateMachine.Instance?.CurrentState is GSMainMenu)
@@ -26,12 +31,26 @@ namespace Game_Browser
         }
         private void WindowFunction(int WindowID)
         {
-            GUILayout.Label("Hello!");
             if (GUILayout.Button("Close")) guiActive = false;
-
+            if (MatchmakingHandler.Instance == null) return;
+            GUILayout.BeginHorizontal();
+            GUITools.DrawCheckbox("Show Full Rooms", ref Config.showFullRooms);
+            GUITools.DrawCheckbox("Show Empty Rooms", ref Config.showEmptyRooms);
+            GUILayout.EndHorizontal();
+            List<MatchmakingRoom> roomList = MatchmakingHandler.Instance.GetRooms(Config.showFullRooms.Value, Config.showEmptyRooms.Value);
+            GUILayout.Label($"Found {roomList.Count} rooms");
+            foreach (MatchmakingRoom roomInfo in roomList)
+            {
+                if (GUILayout.Button($"{roomInfo.RoomName} | {roomInfo.CurrentPlayers} / {roomInfo.MaxPlayers}")) selectedRoom = roomInfo;
+            }
         }
+        private MatchmakingRoom selectedRoom;
         private bool guiActive = false;
         private float updatetime;
         private Rect WindowPos;
+        #endregion
+        #region Matchmaking Methods
+
+        #endregion
     }
 }
