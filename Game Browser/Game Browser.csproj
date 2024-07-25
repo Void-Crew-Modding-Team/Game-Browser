@@ -42,6 +42,10 @@
       <HintPath>E:\Program Files\Steam\steamapps\common\Void Crew\Void Crew_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>E:\Program Files\Steam\steamapps\common\Void Crew\Void Crew_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="VoidManager">
       <HintPath>E:\Program Files\Steam\steamapps\common\Void Crew\BepInEx\plugins\VoidManager.dll</HintPath>
       <Private>False</Private>
