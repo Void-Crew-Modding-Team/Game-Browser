@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -44,9 +44,11 @@ namespace Game_Browser
         {
             Config.showFullRooms = plugin.Config.Bind<bool>("GameBrowser", "showFullRooms", false);
             Config.showEmptyRooms = plugin.Config.Bind<bool>("GameBrowser", "showEmptyRooms", false);
+            Config.currentSortColumn = plugin.Config.Bind<int>("GameBrowser", "currentSortColumn", 0);
         }
 
         internal static ConfigEntry<bool> showFullRooms;
         internal static ConfigEntry<bool> showEmptyRooms;
+        internal static ConfigEntry<int> currentSortColumn;
     }
 }
