@@ -1,10 +1,4 @@
-﻿using CG.GameLoopStateMachine;
-using CG.GameLoopStateMachine.GameStates;
-using CG.Input;
-using Photon.Realtime;
-using System.Collections;
-using System.Collections.Generic;
-using UI.Core;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using VoidManager.Utilities;
 
@@ -13,20 +7,23 @@ namespace Game_Browser
     internal class GameBrowserUI : MatchmakingHandler
     {
         #region Matchmaking Menu
+        private void Start()
+        {
+            WindowPos = new Rect(Screen.width / 4f, Screen.height / 4f, Screen.width / 2f, Screen.height / 2f);
+        }
         private void OnGUI()
         {
-            /*if (GameStateMachine.Instance?.CurrentState is GSMainMenu)
-            {*/
+            if (MenuScreenController.Instance?.OpenCount == 1)
+            {
                 if (GUI.Button(new Rect(10f, 47.5f, 30f, 60f), "M") && Time.time - updatetime != 1f)
                 {
                     updatetime = Time.time;
                     guiActive = !guiActive;
                 }
-            /*}
-            else guiActive = false;*/
+            }
+            else guiActive = false;
             if (guiActive)
             {
-                WindowPos = new Rect(Screen.width / 4f, Screen.height / 4f, Screen.width / 2f, Screen.height / 2f);
                 GUI.Window(14290, WindowPos, new GUI.WindowFunction(WindowFunction), "Game Browser");
             }
         }
@@ -96,7 +93,6 @@ namespace Game_Browser
             {
                 JoinRequested();
             }
-            GUI.DragWindow();
         }
         private Vector2 scrollPosition;
         private MatchmakingRoom selectedRoom;
