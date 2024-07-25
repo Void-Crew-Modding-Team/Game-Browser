@@ -1,8 +1,10 @@
 ﻿using CG.GameLoopStateMachine;
 using CG.GameLoopStateMachine.GameStates;
 using CG.Input;
+using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
+using UI.Core;
 using UnityEngine;
 using VoidManager.Utilities;
 
@@ -68,6 +70,7 @@ namespace Game_Browser
 
 
             GUILayout.Space(10);
+            GUILayout.BeginScrollView(scrollPosition);
             foreach (MatchmakingRoom roomInfo in roomList)
             {
                 if (roomInfo == null) return;
@@ -87,8 +90,15 @@ namespace Game_Browser
                 GUI.Label(new Rect(buttonRect.x + 6 * AverageWidth, buttonRect.y, AverageWidth, buttonRect.height), $"{(roomInfo.InHub ? "In Hub" : "Quest")}");
                 GUILayout.EndHorizontal();
             }
+            GUILayout.EndScrollView();
+            
+            if (GUILayout.Button("Join Game"))
+            {
+                JoinRequested();
+            }
             GUI.DragWindow();
         }
+        private Vector2 scrollPosition;
         private MatchmakingRoom selectedRoom;
         private static bool guiActive = false;
         public static bool GuiActive
@@ -100,7 +110,32 @@ namespace Game_Browser
         private bool retrievingRooms = false;
         private Rect WindowPos;
         #endregion
-        #region Matchmaking Methods
+        #region Matchmaking Menu Methods
+        private void JoinRequested()
+        {
+            if (selectedRoom == null)
+            {
+                //this.failPopup.Show(AbstractDataTable<UIHelperData>.Instance.RoomDoesNotExist.String);
+                return;
+            }
+            MatchmakingHandler.RoomJoinStatus roomJoinStatus = MatchmakingHandler.Instance.JoinGame(selectedRoom.RoomId);
+            switch (roomJoinStatus)
+            {
+                case MatchmakingHandler.RoomJoinStatus.RoomFull:
+                    //this.failPopup.Show(AbstractDataTable<UIHelperData>.Instance.RoomFull.String);
+                    return;
+                case MatchmakingHandler.RoomJoinStatus.RoomDoesNotExist:
+                    //this.failPopup.Show(AbstractDataTable<UIHelperData>.Instance.RoomDoesNotExist.String);
+                    return;
+                case MatchmakingHandler.RoomJoinStatus.RoomIsPrivate:
+                    //this.failPopup.Show(AbstractDataTable<UIHelperData>.Instance.RoomPrivate.String);
+                    return;
+                default:
+                    return;
+            }
+        }
+        #endregion
+        #region Matchmaking Menu Formatting
 
         private enum SortColumn
         {
