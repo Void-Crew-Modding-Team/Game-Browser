@@ -101,6 +101,7 @@ namespace Game_Browser
         private Rect WindowPos;
         #endregion
         #region Matchmaking Methods
+
         private enum SortColumn
         {
             RoomName,
