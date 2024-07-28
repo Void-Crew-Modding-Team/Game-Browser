@@ -39,6 +39,7 @@ namespace Game_Browser
         }
         private static FieldInfo InstanceInfo = AccessTools.Field(typeof(MatchmakingHandler), "_instance");
         private static FieldInfo stateInfo = AccessTools.Field(typeof(MatchmakingHandler), "state");
+        private static FieldInfo roomsInfo = AccessTools.Field(typeof(MatchmakingHandler), "rooms");
         /*
         public enum RoomFetchState
 	    {
@@ -50,21 +51,12 @@ namespace Game_Browser
         */
         private void Update()
         {
-            if (PhotonService.Instance?.CurrentRegion() != null /*&& PhotonNetwork.NetworkClientState == ClientState.JoinedLobby*/)
+            if (guiActive && !retrievingRooms) //OnEnable
             {
-                if (guiActive && !retrievingRooms)
-                {
-                    //stateInfo.SetValue(this, RoomFetchState.UpdatingRooms);
-                    MatchmakingHandler.Instance.StartRetrievingRooms();
-                    retrievingRooms = true;
-                }
-                else if (!guiActive && retrievingRooms)
-                {
-                    MatchmakingHandler.Instance.StopRetrievingRooms();
-                    retrievingRooms = false;
-                }
+                MatchmakingHandler.Instance.StartRetrievingRooms();
+                retrievingRooms = true;
             }
-            else if (retrievingRooms)
+            else if (!guiActive && retrievingRooms) //OnDisable()
             {
                 MatchmakingHandler.Instance.StopRetrievingRooms();
                 retrievingRooms = false;
