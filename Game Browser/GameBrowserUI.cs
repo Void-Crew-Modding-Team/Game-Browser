@@ -57,6 +57,7 @@ namespace Game_Browser
             if (MatchmakingHandler.Instance == null) return;
 
             List<MatchmakingRoom> roomList = MatchmakingHandler.Instance.GetRooms(Config.showFullRooms.Value, Config.showEmptyRooms.Value);
+            if (!roomList.Contains(selectedRoom)) selectedRoom = null;
             GUILayout.BeginHorizontal();
             string pattern = @"\[.*?\]:";
             string region = Regex.Replace(PhotonService.Instance?.CurrentRegion()?.ToString(), pattern, string.Empty);
@@ -83,28 +84,37 @@ namespace Game_Browser
 
 
             GUILayout.Space(10);
-            GUILayout.BeginScrollView(scrollPosition);
-            foreach (MatchmakingRoom roomInfo in roomList)
+            if (roomList.Count != 0)
             {
-                if (roomInfo == null) return;
-                Rect buttonRect = GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.ExpandWidth(true), GUILayout.Height(35));
-                if (GUI.Button(buttonRect, GUIContent.none))
+                GUILayout.BeginScrollView(scrollPosition);
+                foreach (MatchmakingRoom roomInfo in roomList)
                 {
-                    selectedRoom = roomInfo;
+                    if (roomInfo == null) return;
+                    Rect buttonRect = GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.ExpandWidth(true), GUILayout.Height(35));
+                    if (GUI.Button(buttonRect, GUIContent.none))
+                    {
+                        selectedRoom = roomInfo;
+                    }
+                    FormattedRect(buttonRect, new List<string>() { roomInfo.RoomName, $"{roomInfo.CurrentPlayers} / {roomInfo.MaxPlayers}", $"{roomInfo.AverageRank}", roomInfo.QuestDifficulty, roomInfo.SystemName, roomInfo.ShipName, $"{(roomInfo.InHub ? "In Hub" : "Quest")}" });
                 }
-                FormattedRect(buttonRect, new List<string>() { roomInfo.RoomName, $"{roomInfo.CurrentPlayers} / {roomInfo.MaxPlayers}", $"{roomInfo.AverageRank}", roomInfo.QuestDifficulty, roomInfo.SystemName, roomInfo.ShipName, $"{(roomInfo.InHub ? "In Hub" : "Quest")}" });
-            }
-            GUILayout.EndScrollView();
+                GUILayout.EndScrollView();
 
-            if (selectedRoom != null)
-            {
-                GUILayout.Label("<b>Room Info</b>");
-                Rect buttonRect2 = GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.ExpandWidth(true), GUILayout.Height(35));
-                FormattedRect(buttonRect2, new List<string>() { selectedRoom.RoomName, $"{selectedRoom.CurrentPlayers} / {selectedRoom.MaxPlayers}", $"{selectedRoom.AverageRank}", selectedRoom.QuestDifficulty, selectedRoom.SystemName, selectedRoom.ShipName, $"{(selectedRoom.InHub ? "In Hub" : "Quest")}" });
-                if (GUILayout.Button("Join Game"))
+                if (selectedRoom != null)
                 {
-                    JoinRequested();
+                    GUILayout.Label("<b>Room Info</b>");
+                    Rect buttonRect2 = GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.ExpandWidth(true), GUILayout.Height(35));
+                    FormattedRect(buttonRect2, new List<string>() { selectedRoom.RoomName, $"{selectedRoom.CurrentPlayers} / {selectedRoom.MaxPlayers}", $"{selectedRoom.AverageRank}", selectedRoom.QuestDifficulty, selectedRoom.SystemName, selectedRoom.ShipName, $"{(selectedRoom.InHub ? "In Hub" : "Quest")}" });
+                    if (GUILayout.Button("Join Game"))
+                    {
+                        JoinRequested();
+                    }
                 }
+            }
+            else
+            {
+                GUILayout.BeginScrollView(scrollPosition);
+                GUILayout.Label($"{(retrievingRooms ? "Searching for rooms . . ." : "Unable to retrieve rooms" )}");
+                GUILayout.EndScrollView();
             }
             if (GUILayout.Button("Create Hub"))
             {
