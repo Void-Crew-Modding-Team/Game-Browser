@@ -1,6 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using CG.GameLoopStateMachine.GameStates;
+using CG.GameLoopStateMachine;
+using System;
+using System.Collections.Generic;
+using ToolClasses;
 using UnityEngine;
 using VoidManager.Utilities;
+using HarmonyLib;
+using System.Reflection;
+using System.Text.RegularExpressions;
+using Photon.Pun;
+using System.Threading.Tasks;
 
 namespace Game_Browser
 {
@@ -27,6 +36,7 @@ namespace Game_Browser
                 GUI.Window(14290, WindowPos, new GUI.WindowFunction(WindowFunction), "Game Browser");
             }
         }
+        private static FieldInfo InstanceInfo = AccessTools.Field(typeof(MatchmakingHandler), "_instance");
         private void Update()
         {
             if (guiActive && !retrievingRooms)
@@ -39,6 +49,7 @@ namespace Game_Browser
                 MatchmakingHandler.Instance.StopRetrievingRooms();
                 retrievingRooms = false;
             }
+            if (MatchmakingHandler.Instance == null) InstanceInfo.SetValue(this, this);
         }
         private void WindowFunction(int WindowID)
         {
@@ -46,7 +57,12 @@ namespace Game_Browser
             if (MatchmakingHandler.Instance == null) return;
 
             List<MatchmakingRoom> roomList = MatchmakingHandler.Instance.GetRooms(Config.showFullRooms.Value, Config.showEmptyRooms.Value);
+            GUILayout.BeginHorizontal();
+            string pattern = @"\[.*?\]:";
+            string region = Regex.Replace(PhotonService.Instance?.CurrentRegion()?.ToString(), pattern, string.Empty);
+            GUILayout.Label($"Current Region: {region}");
             GUILayout.Label($"Found {roomList.Count} rooms");
+            GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUITools.DrawCheckbox("Show Full Rooms", ref Config.showFullRooms);
@@ -93,6 +109,10 @@ namespace Game_Browser
             {
                 JoinRequested();
             }
+            if (GUILayout.Button("Create Hub"))
+            {
+                JoinHub();
+            }
         }
         private Vector2 scrollPosition;
         private MatchmakingRoom selectedRoom;
@@ -129,6 +149,30 @@ namespace Game_Browser
                 default:
                     return;
             }
+        }
+        private async void JoinHub()
+        {
+            if (PhotonNetwork.CurrentRoom != null && PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("R_IH"))
+            {
+                Singleton<GameStateMachine>.Instance.ChangeState<GSQuitFromMenu>();
+                Singleton<MenuControllerUGUI>.I.CloseTopMenu();
+
+                // Wait asynchronously until the PhotonNetwork.CurrentRoom is null
+                await WaitForRoomToBeNullAsync();
+            }
+            Singleton<SteamService>.I.CreateLobby().Then(() => PunSingleton<PhotonService>.I.CreateRoom(false)).Then(new Action(this.LaunchHub));
+        }
+        private async Task WaitForRoomToBeNullAsync()
+        {
+            while (!(Singleton<GameStateMachine>.Instance.CurrentState is GSMainMenu))
+            {
+                await Task.Delay(100); // Check every 100ms
+            }
+        }
+        private void LaunchHub()
+        {
+            GameSessionManager.Instance.SetNextGameSession(GameSessionLoadPromise.LoadLobbyData());
+            Singleton<GameStateMachine>.Instance.ChangeState<GSLoadingGame>();
         }
         #endregion
         #region Matchmaking Menu Formatting
