@@ -87,27 +87,24 @@ namespace Game_Browser
             foreach (MatchmakingRoom roomInfo in roomList)
             {
                 if (roomInfo == null) return;
-                Rect buttonRect = GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.ExpandWidth(true), GUILayout.Height(30));
+                Rect buttonRect = GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.ExpandWidth(true), GUILayout.Height(35));
                 if (GUI.Button(buttonRect, GUIContent.none))
                 {
                     selectedRoom = roomInfo;
                 }
-                float AverageWidth = buttonRect.width / 7;
-                GUILayout.BeginHorizontal();
-                GUI.Label(new Rect(buttonRect.x, buttonRect.y, AverageWidth, buttonRect.height), $"{roomInfo.RoomName}");
-                GUI.Label(new Rect(buttonRect.x + AverageWidth, buttonRect.y, AverageWidth, buttonRect.height), $"{roomInfo.CurrentPlayers} / {roomInfo.MaxPlayers}");
-                GUI.Label(new Rect(buttonRect.x + 2 * AverageWidth, buttonRect.y, AverageWidth, buttonRect.height), $"{roomInfo.AverageRank}");
-                GUI.Label(new Rect(buttonRect.x + 3 * AverageWidth, buttonRect.y, AverageWidth, buttonRect.height), $"{roomInfo.QuestDifficulty}");
-                GUI.Label(new Rect(buttonRect.x + 4 * AverageWidth, buttonRect.y, AverageWidth, buttonRect.height), $"{roomInfo.SystemName}");
-                GUI.Label(new Rect(buttonRect.x + 5 * AverageWidth, buttonRect.y, AverageWidth, buttonRect.height), $"{roomInfo.ShipName}");
-                GUI.Label(new Rect(buttonRect.x + 6 * AverageWidth, buttonRect.y, AverageWidth, buttonRect.height), $"{(roomInfo.InHub ? "In Hub" : "Quest")}");
-                GUILayout.EndHorizontal();
+                FormattedRect(buttonRect, new List<string>() { roomInfo.RoomName, $"{roomInfo.CurrentPlayers} / {roomInfo.MaxPlayers}", $"{roomInfo.AverageRank}", roomInfo.QuestDifficulty, roomInfo.SystemName, roomInfo.ShipName, $"{(roomInfo.InHub ? "In Hub" : "Quest")}" });
             }
             GUILayout.EndScrollView();
-            
-            if (GUILayout.Button("Join Game"))
+
+            if (selectedRoom != null)
             {
-                JoinRequested();
+                GUILayout.Label("<b>Room Info</b>");
+                Rect buttonRect2 = GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.ExpandWidth(true), GUILayout.Height(35));
+                FormattedRect(buttonRect2, new List<string>() { selectedRoom.RoomName, $"{selectedRoom.CurrentPlayers} / {selectedRoom.MaxPlayers}", $"{selectedRoom.AverageRank}", selectedRoom.QuestDifficulty, selectedRoom.SystemName, selectedRoom.ShipName, $"{(selectedRoom.InHub ? "In Hub" : "Quest")}" });
+                if (GUILayout.Button("Join Game"))
+                {
+                    JoinRequested();
+                }
             }
             if (GUILayout.Button("Create Hub"))
             {
@@ -176,6 +173,17 @@ namespace Game_Browser
         }
         #endregion
         #region Matchmaking Menu Formatting
+
+        private void FormattedRect(Rect buttonRect, List<string> strings)
+        {
+            float AverageWidth = buttonRect.width / strings.Count;
+            GUILayout.BeginHorizontal();
+            for (int i = 0; i < strings.Count; i++)
+            {
+                GUI.Label(new Rect(buttonRect.x + (i * AverageWidth), buttonRect.y, AverageWidth, buttonRect.height), $"{strings[i]}");
+            }
+            GUILayout.EndHorizontal();
+        }
 
         private enum SortColumn
         {
