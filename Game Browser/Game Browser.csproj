@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -29,6 +29,9 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>E:\Program Files\Steam\steamapps\common\Void Crew\Void Crew_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
+    </Reference>
+    <Reference Include="Photon3Unity3D">
+      <HintPath>E:\Program Files\Steam\steamapps\common\Void Crew\Void Crew_Data\Managed\Photon3Unity3D.dll</HintPath>
     </Reference>
     <Reference Include="PhotonRealtime">
       <HintPath>E:\Program Files\Steam\steamapps\common\Void Crew\Void Crew_Data\Managed\PhotonRealtime.dll</HintPath>
