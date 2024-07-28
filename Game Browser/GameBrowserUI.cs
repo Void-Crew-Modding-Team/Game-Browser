@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using Photon.Pun;
 using System.Threading.Tasks;
+using Photon.Realtime;
 
 namespace Game_Browser
 {
@@ -37,14 +38,33 @@ namespace Game_Browser
             }
         }
         private static FieldInfo InstanceInfo = AccessTools.Field(typeof(MatchmakingHandler), "_instance");
+        private static FieldInfo stateInfo = AccessTools.Field(typeof(MatchmakingHandler), "state");
+        /*
+        public enum RoomFetchState
+	    {
+		    Disconnected,
+		    ConnectingToMasterServer,
+		    ConnectingToLobby,
+		    UpdatingRooms
+	    }
+        */
         private void Update()
         {
-            if (guiActive && !retrievingRooms)
+            if (PhotonService.Instance?.CurrentRegion() != null /*&& PhotonNetwork.NetworkClientState == ClientState.JoinedLobby*/)
             {
-                MatchmakingHandler.Instance.StartRetrievingRooms();
-                retrievingRooms = true;
+                if (guiActive && !retrievingRooms)
+                {
+                    //stateInfo.SetValue(this, RoomFetchState.UpdatingRooms);
+                    MatchmakingHandler.Instance.StartRetrievingRooms();
+                    retrievingRooms = true;
+                }
+                else if (!guiActive && retrievingRooms)
+                {
+                    MatchmakingHandler.Instance.StopRetrievingRooms();
+                    retrievingRooms = false;
+                }
             }
-            else if (!guiActive && retrievingRooms)
+            else if (retrievingRooms)
             {
                 MatchmakingHandler.Instance.StopRetrievingRooms();
                 retrievingRooms = false;
@@ -54,7 +74,7 @@ namespace Game_Browser
         private void WindowFunction(int WindowID)
         {
             if (GUILayout.Button("Close")) guiActive = false;
-            if (MatchmakingHandler.Instance == null) return;
+            if (MatchmakingHandler.Instance == null || PhotonService.Instance?.CurrentRegion() == null) return;
 
             List<MatchmakingRoom> roomList = MatchmakingHandler.Instance.GetRooms(Config.showFullRooms.Value, Config.showEmptyRooms.Value);
             if (!roomList.Contains(selectedRoom)) selectedRoom = null;
