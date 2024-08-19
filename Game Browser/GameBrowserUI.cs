@@ -11,7 +11,6 @@ using System.Text.RegularExpressions;
 using Photon.Pun;
 using System.Threading.Tasks;
 using UnityEngine.UI;
-using UI.Settings;
 
 namespace Game_Browser
 {
