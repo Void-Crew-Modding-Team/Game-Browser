@@ -53,11 +53,13 @@ namespace Game_Browser
         {
             if (guiActive && !retrievingRooms) //OnEnable
             {
+                PhotonNetwork.AddCallbackTarget(this);
                 MatchmakingHandler.Instance.StartRetrievingRooms();
                 retrievingRooms = true;
             }
             else if (!guiActive && retrievingRooms) //OnDisable()
             {
+                PhotonNetwork.RemoveCallbackTarget(this);
                 MatchmakingHandler.Instance.StopRetrievingRooms();
                 retrievingRooms = false;
             }
@@ -68,7 +70,7 @@ namespace Game_Browser
             if (GUILayout.Button("Close")) guiActive = false;
             if (MatchmakingHandler.Instance == null || PhotonService.Instance?.CurrentRegion() == null) return;
 
-            List<MatchmakingRoom> roomList = MatchmakingHandler.Instance.GetRooms(Config.showFullRooms.Value, Config.showEmptyRooms.Value);
+            List<MatchmakingRoom> roomList = MatchmakingHandler.Instance.GetRooms(Config.showFullRooms.Value, Config.showEmptyRooms.Value); 
             if (!roomList.Contains(selectedRoom)) selectedRoom = null;
             GUILayout.BeginHorizontal();
             string pattern = @"\[.*?\]:";
