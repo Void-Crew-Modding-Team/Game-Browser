@@ -10,16 +10,34 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using Photon.Pun;
 using System.Threading.Tasks;
-using Photon.Realtime;
+using UnityEngine.UI;
+using UI.Settings;
 
 namespace Game_Browser
 {
     internal class GameBrowserUI : MatchmakingHandler
     {
         #region Matchmaking Menu
+        GameObject Background;
+        GameObject GBUICanvas;
+        Image Image;
         private void Start()
         {
             WindowPos = new Rect(Screen.width / 4f, Screen.height / 4f, Screen.width / 2f, Screen.height / 2f);
+            GBUICanvas = new GameObject("GameBrowserUICanvas", new Type[] { typeof(Canvas) });
+            Canvas canvasComponent = GBUICanvas.GetComponent<Canvas>();
+            canvasComponent.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvasComponent.sortingOrder = 999;
+            canvasComponent.transform.SetAsLastSibling();
+            DontDestroyOnLoad(GBUICanvas);
+
+
+            //Background image to block mouse clicks passing IMGUI
+            Background = new GameObject("GameBrowserUIBG", new Type[] { typeof(GraphicRaycaster) });
+            Image = Background.AddComponent<UnityEngine.UI.Image>();
+            Image.color = Color.clear;
+            Background.transform.SetParent(GBUICanvas.transform);
+            Background.SetActive(false);
         }
         private void OnGUI()
         {
@@ -34,7 +52,18 @@ namespace Game_Browser
             else guiActive = false;
             if (guiActive)
             {
-                GUI.Window(14290, WindowPos, new GUI.WindowFunction(WindowFunction), "Game Browser");
+                GUI.skin = ChangeSkin();
+                WindowPos = GUI.Window(14290, WindowPos, WindowFunction, "Game Browser");
+                if (Image != null)
+                {
+                    Image.rectTransform.position = new Vector3(WindowPos.center.x, (WindowPos.center.y * -1) + Screen.height, 0);
+                    Image.rectTransform.sizeDelta = WindowPos.size;
+                }
+                if (Background != null) Background.SetActive(true);
+            }
+            else
+            {
+                if (Background != null) Background.SetActive(false);
             }
         }
         private static FieldInfo InstanceInfo = AccessTools.Field(typeof(MatchmakingHandler), "_instance");
@@ -134,6 +163,7 @@ namespace Game_Browser
             {
                 JoinHub();
             }
+            GUI.DragWindow();
         }
         private Vector2 scrollPosition;
         private MatchmakingRoom selectedRoom;
@@ -201,12 +231,14 @@ namespace Game_Browser
         private void FormattedRect(Rect buttonRect, List<string> strings)
         {
             float AverageWidth = buttonRect.width / strings.Count;
+            GUI.skin.label.alignment = TextAnchor.MiddleCenter;
             GUILayout.BeginHorizontal();
             for (int i = 0; i < strings.Count; i++)
             {
                 GUI.Label(new Rect(buttonRect.x + (i * AverageWidth), buttonRect.y, AverageWidth, buttonRect.height), $"{strings[i]}");
             }
             GUILayout.EndHorizontal();
+            GUI.skin.label.alignment = TextAnchor.MiddleLeft;
         }
 
         private enum SortColumn
@@ -267,6 +299,115 @@ namespace Game_Browser
             }
         }
         private bool ascending = true;
+
+        internal static GUISkin _cachedSkin;
+        internal static GUIStyle _SelectedButtonStyle;
+        internal static Texture2D _buttonBackground;
+        internal static Texture2D _hbuttonBackground;
+        private static readonly Color32 _classicMenuBackground = new Color32(32, 32, 32, 255);
+        private static readonly Color32 _classicButtonBackground = new Color32(40, 40, 40, 255);
+        //private static readonly Color32 _hoverButtonFromMenu = new Color32(18, 79, 179, 255);
+        internal GUISkin ChangeSkin()
+        {
+            if (_cachedSkin is null || _cachedSkin.window.active.background is null)
+            {
+                _cachedSkin = Instantiate(GUI.skin);
+                Texture2D windowBackground = BuildTexFrom1Color(_classicMenuBackground);
+                _cachedSkin.window.active.background = windowBackground;
+                _cachedSkin.window.onActive.background = windowBackground;
+                _cachedSkin.window.focused.background = windowBackground;
+                _cachedSkin.window.onFocused.background = windowBackground;
+                _cachedSkin.window.hover.background = windowBackground;
+                _cachedSkin.window.onHover.background = windowBackground;
+                _cachedSkin.window.normal.background = windowBackground;
+                _cachedSkin.window.onNormal.background = windowBackground;
+
+                _cachedSkin.window.hover.textColor = Color.white;
+                _cachedSkin.window.onHover.textColor = Color.white;
+
+                Color32 hoverbutton = new Color32(60, 60, 60, 255);
+
+                _buttonBackground = BuildTexFrom1Color(_classicButtonBackground);
+                _hbuttonBackground = BuildTexFrom1Color(hoverbutton);
+                _cachedSkin.button.active.background = _buttonBackground;
+                _cachedSkin.button.focused.background = _buttonBackground;
+                _cachedSkin.button.hover.background = _hbuttonBackground;
+                _cachedSkin.button.normal.background = _buttonBackground;
+                //_cachedSkin.button.onActive.background = _buttonBackground;
+                //_cachedSkin.button.onFocused.background = _buttonBackground;
+                //_cachedSkin.button.onHover.background = _hbuttonBackground;
+                //_cachedSkin.button.onNormal.background = _buttonBackground;
+
+                //Remember to check out https://forum.unity.com/threads/focusing-gui-controls.20511/ and potentially replace this with better code.
+                _SelectedButtonStyle = new GUIStyle(_cachedSkin.button);
+                _SelectedButtonStyle.active.background = _hbuttonBackground;
+                _SelectedButtonStyle.focused.background = _hbuttonBackground;
+                _SelectedButtonStyle.normal.background = _hbuttonBackground;
+
+                GUITools.ButtonMinSizeStyle = new GUIStyle(_cachedSkin.button);
+                GUITools.ButtonMinSizeStyle.stretchWidth = false;
+
+                Texture2D sliderBackground = BuildTexFrom1Color(new Color32(47, 79, 79, 255));
+                _cachedSkin.horizontalSlider.active.background = sliderBackground;
+                _cachedSkin.horizontalSlider.onActive.background = sliderBackground;
+                _cachedSkin.horizontalSlider.focused.background = sliderBackground;
+                _cachedSkin.horizontalSlider.onFocused.background = sliderBackground;
+                _cachedSkin.horizontalSlider.hover.background = sliderBackground;
+                _cachedSkin.horizontalSlider.onHover.background = sliderBackground;
+                _cachedSkin.horizontalSlider.normal.background = sliderBackground;
+                _cachedSkin.horizontalSlider.onNormal.background = sliderBackground;
+
+                Texture2D sliderHandleBackground = BuildTexFrom1Color(new Color32(47, 79, 79, 255));
+                _cachedSkin.horizontalSliderThumb.active.background = sliderHandleBackground;
+                _cachedSkin.horizontalSliderThumb.onActive.background = sliderHandleBackground;
+                _cachedSkin.horizontalSliderThumb.focused.background = sliderHandleBackground;
+                _cachedSkin.horizontalSliderThumb.onFocused.background = sliderHandleBackground;
+                _cachedSkin.horizontalSliderThumb.hover.background = sliderHandleBackground;
+                _cachedSkin.horizontalSliderThumb.onHover.background = sliderHandleBackground;
+                _cachedSkin.horizontalSliderThumb.normal.background = sliderHandleBackground;
+                _cachedSkin.horizontalSliderThumb.onNormal.background = sliderHandleBackground;
+
+                Texture2D textfield = BuildTexFromColorArray(new Color[] { _classicButtonBackground, _classicButtonBackground, _classicMenuBackground,
+                _classicMenuBackground, _classicMenuBackground, _classicMenuBackground , _classicMenuBackground}, 1, 7);
+                _cachedSkin.textField.active.background = textfield;
+                _cachedSkin.textField.onActive.background = textfield;
+                _cachedSkin.textField.focused.background = textfield;
+                _cachedSkin.textField.onFocused.background = textfield;
+                _cachedSkin.textField.hover.background = textfield;
+                _cachedSkin.textField.onHover.background = textfield;
+                _cachedSkin.textField.normal.background = textfield;
+                _cachedSkin.textField.onNormal.background = textfield;
+
+                _cachedSkin.textField.active.textColor = hoverbutton;
+                _cachedSkin.textField.onActive.textColor = hoverbutton;
+                _cachedSkin.textField.hover.textColor = hoverbutton;
+                _cachedSkin.textField.onHover.textColor = hoverbutton;
+
+                UnityEngine.Object.DontDestroyOnLoad(windowBackground);
+                UnityEngine.Object.DontDestroyOnLoad(_buttonBackground);
+                UnityEngine.Object.DontDestroyOnLoad(_hbuttonBackground);
+                UnityEngine.Object.DontDestroyOnLoad(textfield);
+                UnityEngine.Object.DontDestroyOnLoad(_cachedSkin);
+                // TODO: Add custom skin for Toggle and other items
+            }
+
+            Texture2D BuildTexFrom1Color(Color color)
+            {
+                Texture2D tex = new Texture2D(1, 1);
+                tex.SetPixel(0, 0, color);
+                tex.Apply();
+                return tex;
+            }
+
+            Texture2D BuildTexFromColorArray(Color[] color, int width, int height)
+            {
+                Texture2D tex = new Texture2D(width, height);
+                tex.SetPixels(color);
+                tex.Apply();
+                return tex;
+            }
+            return _cachedSkin;
+        }
         #endregion
     }
 }
